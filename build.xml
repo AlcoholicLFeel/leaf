@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="leaf" default="main" basedir=".">
+
+    <property file="local.properties"/>
+    <property file="project.properties"/>
+    <property name="android-jar" value="${sdk.dir}/platforms/${target}/android.jar" />
+    <property name="std-jar" value="${sdk.dir}/tools/lib/sdklib.jar" />
+
+    <target name="init">
+        <mkdir dir="gen" />
+    </target>
+
+    <target name="main" depends="init">
+        <exec executable="ndk-build" />
+
+        <exec executable="aapt">
+            <arg value="package"/>
+            <arg value="-m" />
+            <arg value="-J" />
+            <arg value="gen" />
+            <arg value="-S" />
+            <arg value="res" />
+            <arg value="-M" />
+            <arg value="AndroidManifest.xml" />
+            <arg value="-I" />
+            <arg value="${android-jar}" />
+        </exec>  
+
+        <javac target="1.6" source="1.6" encoding="utf-8" bootclasspath="${android-jar}" destdir="bin" includeantruntime="on">
+            <src path="src" />
+            <src path="gen" />
+        </javac>
+
+        <exec executable="dx">
+            <arg value="--dex"/>
+            <arg value="--output=./bin/classes.dex" />
+            <arg value="./bin" />
+        </exec> 
+
+        <exec executable="aapt">
+            <arg value="package"/>
+            <arg value="-f" />
+            <arg value="-M" />
+            <arg value="AndroidManifest.xml" />
+            <arg value="-S" />
+            <arg value="res" />
+            <arg value="-I" />
+            <arg value="${android-jar}" />
+            <arg value="-F" />
+            <arg value="bin/resources.arsc" />
+        </exec> 
+
+        <exec executable="java">
+            <arg value="-cp"/>
+            <arg value="${std-jar}" />
+            <arg value="com.android.sdklib.build.ApkBuilderMain" />
+            <arg value="temp.apk" />
+            <arg value="-v" />
+            <arg value="-u" />
+            <arg value="-z" />
+            <arg value="bin/resources.arsc" />
+            <arg value="-f" />
+            <arg value="bin/classes.dex" />
+            <arg value="-rf" />
+            <arg value="src" />
+            <arg value="-nf" />
+            <arg value="libs" />
+        </exec> 
+
+        <exec executable="jarsigner">
+            <arg value="-verbose"/>
+            <arg value="-sigalg" />
+            <arg value="SHA1withRSA" />
+            <arg value="-digestalg" />
+            <arg value="SHA1" />
+            <arg value="-keystore" />
+            <arg value="android.keystore" />
+            <arg value="-storepass" />
+            <arg value="12345678" />
+            <arg value="-signedjar" />
+            <arg value="leaf.apk" />
+            <arg value="temp.apk" />
+            <arg value="android" />
+        </exec>
+
+        <delete file="temp.apk" />
+        <delete dir="gen" />
+    </target>
+
+</project>
