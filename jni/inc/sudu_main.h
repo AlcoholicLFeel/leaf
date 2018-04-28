@@ -7,7 +7,6 @@
 #include <sudu/VerticalBlock.h>
 #include <sudu/HorizontalBlock.h>
 #include <sudu/Controller.h>
-#include <log/logi.h>
 
 
 class sudu_main
